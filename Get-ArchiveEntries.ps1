@@ -4,7 +4,7 @@
 #####################################################
 <#PSScriptInfo
 
-.VERSION 0.1
+.VERSION 0.2
 .GUID 9cc904fc-341c-4873-ace6-c37f8c1e2f13
 
 .AUTHOR David Walker, Sitecore Dave, Radical Dave
@@ -74,7 +74,7 @@ function Get-ArchiveEntries
 		} else {
 			foreach($query in $search) {
 				Write-Verbose "query:$query"
-				$queryResults = ($zip.Entries | Where-Object { ( (-not($_.Name -Like '*.zip')) -and ($_.FullName -Like $query)) }) #| ForEach-Object { $_ }
+				$queryResults = ($zip.Entries | Where-Object { $_.FullName -Like $query }) #| ForEach-Object { $_ }
 				Write-Verbose "query.count:$($queryResults.Length)"
 				$results += $queryResults
 			}
@@ -100,7 +100,7 @@ function Get-ArchiveEntries
 			if (Test-Path $tempFolder) { Remove-Item $tempFolder -Recurse -Force } 
 			if (!(Test-Path $tempFolder)) { 
 				Write-Verbose "New-Item $tempFolder"
-				New-Item -Path $tempFolder -ItemType Directory
+				New-Item -Path $tempFolder -ItemType Directory | Out-Null
 			}
 			($zips | Where-Object { $_.Name -Like '*.zip' }) | ForEach-Object {
 				$tempZipPath = "$tempFolder\$($_.FullName)"
