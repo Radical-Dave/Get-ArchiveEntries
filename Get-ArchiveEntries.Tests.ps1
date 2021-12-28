@@ -1,52 +1,21 @@
-$repoPath = Split-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -Parent
-Write-Verbose "repoPath:$repoPath"
-. $repoPath\tests\TestRunner.ps1 {
-    $repoPath = Split-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -Parent
-    . $repoPath\tests\TestUtils.ps1
-    $ModuleName = Split-Path $repoPath -Leaf
-    $ModuleScriptName = 'SharedSitecore.SitecoreDocker.psm1'
-    $ModuleManifestName = 'SharedSitecore.SitecoreDocker.psd1'
-    $ModuleScriptPath = "$repoPath\src\$ModuleName\$ModuleScriptName"
-    $ModuleManifestPath = "$repoPath\src\$\ModuleName\$ModuleManifestName"
-
-    if (!(Get-Module PSScriptAnalyzer -ErrorAction SilentlyContinue)) {
-        Install-Module -Name PSScriptAnalyzer -Repository PSGallery -Force
+Describe 'Script Tests' {
+    It 'passes ScriptAnalyzer' {
+        Invoke-ScriptAnalyzer -Path Get-ArchiveEntries.ps1 | Should -BeNullOrEmpty
     }
 
-    Describe 'Module Tests' {
-        $repoPath = Split-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -Parent
-        $ModuleName = Split-Path $repoPath -Leaf
-        $ModuleScriptName = "$ModuleName.psm1"
-        $ModuleScriptPath = "$repoPath\src\$ModuleName\$ModuleScriptName"
-
-        It 'imports successfully' {
-            $repoPath = Split-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -Parent
-            $ModuleName = Split-Path $repoPath -Leaf
-            $ModuleScriptPath = "$repoPath\src\$ModuleName\$ModuleName.psm1"
-
-            Write-Verbose "Import-Module -Name $($ModuleScriptPath)"
-            { Import-Module -Name $ModuleScriptPath -ErrorAction Stop } | Should -Not -Throw
-        }
-
-        It 'passes default PSScriptAnalyzer rules' {
-            $repoPath = Split-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -Parent
-            $ModuleName = Split-Path $repoPath -Leaf
-            $ModuleScriptPath = "$repoPath\src\$ModuleName\$ModuleName.psm1"
-
-            Invoke-ScriptAnalyzer -Path $ModuleScriptPath | Should -BeNullOrEmpty
-        }
+    It 'passes no params' {
+        .\Get-ArchiveEntries.ps1 | Should -BeNullOrEmpty
     }
 
-    Describe 'Module Manifest Tests' {
-        It 'passes Test-ModuleManifest' {
-            $repoPath = Split-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -Parent
-            $ModuleName = Split-Path $repoPath -Leaf
-            $ModuleManifestName = "$ModuleName.psd1"
-            $ModuleManifestPath = "$repoPath\src\$ModuleName\$ModuleManifestName"
+    It 'passes recurse' {
+        .\Get-ArchiveEntries.ps1 -recurse | Should -Not -BeNullOrEmpty
+    }
 
-            Write-Output $ModuleManifestPath
-            Test-ModuleManifest -Path $ModuleManifestPath | Should -Not -BeNullOrEmpty
-            $? | Should -Be $true
-        }
+    It 'passes smoke-test' {
+        .\Get-ArchiveEntries.ps1 (Join-Path $PSScriptRoot 'smoke-test.zip') -recurse | Should -Not -BeNullOrEmpty
+    }
+
+    It 'passes smoke-test-data' {
+        .\Get-ArchiveEntries.ps1 ".\smoke-test-data.zip" @('items/core/*','items/master/*','properties/items/core/*','properties/items/master/*','core.dacpac','master.dacpac') -recurse| Should -Not -BeNullOrEmpty
     }
 }
